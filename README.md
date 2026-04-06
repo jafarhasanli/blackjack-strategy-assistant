@@ -13,6 +13,14 @@ An interactive single-page web application that helps players study **basic blac
 
 ---
 
+## 🎮 Play the Game Online
+
+You can play the game directly in your browser without downloading anything:
+
+👉 **[Click here to play](https://jafarhasanli.github.io/blackjack-strategy-assistant/)**
+
+---
+
 ## Features
 
 - Select dealer upcard and player cards visually
