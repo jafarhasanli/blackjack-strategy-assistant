@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blackjack Strateji Asistanı</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #1f3c88;
+      --accent: #2563eb;
+      --success-bg: #dcfce7;
+      --success-text: #166534;
+      --warning-bg: #ffedd5;
+      --warning-text: #9a3412;
+      --info-bg: #dbeafe;
+      --info-text: #1d4ed8;
+      --split-bg: #f3e8ff;
+      --split-text: #7e22ce;
+      --danger: #dc2626;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 100%);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), #0f172a);
+      color: white;
+      padding: 28px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 3vw, 2.5rem);
+    }
+
+    header p {
+      margin: 0;
+      color: #dbeafe;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin-top: 0;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .selected-zone {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 18px 0 22px;
+    }
+
+    .selected-box {
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 14px;
+      background: #f8fafc;
+      min-height: 100px;
+    }
+
+    .selected-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .mini-card,
+    .card {
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+
+    .mini-card {
+      min-width: 46px;
+      height: 64px;
+      border: 1px solid #cbd5e1;
+      background: white;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .card {
+      width: 100%;
+      min-height: 88px;
+      border: 1px solid #d1d5db;
+      background: white;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      font-size: 1.1rem;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+      border-color: var(--accent);
+    }
+
+    .red {
+      color: #dc2626;
+    }
+
+    .black {
+      color: #111827;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: filter 0.2s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      filter: brightness(0.97);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-success { background: #16a34a; color: white; }
+    .btn-warning { background: #ea580c; color: white; }
+    .btn-purple { background: #9333ea; color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-neutral { background: #e5e7eb; color: #111827; }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      border-radius: 12px;
+      padding: 14px;
+      background: #0f172a;
+      color: white;
+    }
+
+    .stat-box .label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .stat-box strong {
+      font-size: 1.2rem;
+    }
+
+    .config-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .field select,
+    .field input {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: white;
+    }
+
+    .recommendation {
+      border-radius: 14px;
+      padding: 16px;
+      font-weight: 800;
+      text-align: center;
+      font-size: 1.25rem;
+      letter-spacing: 0.04em;
+      margin: 16px 0;
+      border: 1px solid transparent;
+    }
+
+    .recommendation.hit {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border-color: #fdba74;
+    }
+
+    .recommendation.stand {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border-color: #86efac;
+    }
+
+    .recommendation.double {
+      background: var(--info-bg);
+      color: var(--info-text);
+      border-color: #93c5fd;
+    }
+
+    .recommendation.split {
+      background: var(--split-bg);
+      color: var(--split-text);
+      border-color: #d8b4fe;
+    }
+
+    .recommendation.waiting {
+      background: #f3f4f6;
+      color: #374151;
+      border-color: #d1d5db;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .detail-row {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 24px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #0f172a;
+      color: white;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-weight: 700;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .selected-zone,
+      .config-row,
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Blackjack Strateji Asistanı</h1>
+      <p>Temel strateji + Hi-Lo kart sayımı + daha güvenli ve doğru hesaplama</p>
+    </header>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="section-title">
+          <h2>Kart Girişi</h2>
+          <span class="muted">Önce krupiyerin açık kartını, sonra oyuncu kartlarını seç.</span>
+        </div>
+
+        <div class="selected-zone">
+          <div class="selected-box">
+            <strong>Krupiyer Kartı</strong>
+            <div class="selected-cards" id="selected-dealer"></div>
+          </div>
+          <div class="selected-box">
+            <strong>Oyuncu Kartları</strong>
+            <div class="selected-cards" id="selected-player"></div>
+          </div>
+        </div>
+
+        <h3>Krupiyerin Açık Kartı</h3>
+        <div class="card-grid" id="dealer-cards"></div>
+
+        <h3>Oyuncu Kart Ekle</h3>
+        <div class="card-grid" id="player-cards"></div>
+
+        <div class="controls">
+          <button class="btn-warning" id="undo-player-btn">Son Oyuncu Kartını Geri Al</button>
+          <button class="btn-neutral" id="clear-player-btn">Oyuncu Elini Temizle</button>
+          <button class="btn-neutral" id="clear-dealer-btn">Krupiyer Kartını Temizle</button>
+          <button class="btn-danger" id="new-round-btn">Yeni El</button>
+          <button class="btn-neutral" id="reset-shoe-btn">Ayakkabıyı / Count'u Sıfırla</button>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <h2>Analiz ve Tavsiye</h2>
+
+        <div class="config-row">
+          <div class="field">
+            <label for="deck-count">Deste Sayısı</label>
+            <select id="deck-count">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="4">4</option>
+              <option value="6" selected>6</option>
+              <option value="8">8</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="decks-remaining">Tahmini Kalan Deste</label>
+            <input id="decks-remaining" type="number" min="0.25" step="0.25" value="6" />
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-box">
+            <span class="label">Running Count</span>
+            <strong id="running-count">0</strong>
+          </div>
+          <div class="stat-box">
+            <span class="label">True Count</span>
+            <strong id="true-count">0.0</strong>
+          </div>
+          <div class="stat-box">
+            <span class="label">Önerilen Bahis</span>
+            <strong id="recommended-bet">1 birim</strong>
+          </div>
+        </div>
+
+        <div class="recommendation waiting" id="recommendation">Lütfen kartları seçin</div>
+
+        <div class="details">
+          <div class="detail-row"><strong>Krupiyer:</strong> <span id="dealer-value">-</span></div>
+          <div class="detail-row"><strong>Oyuncu:</strong> <span id="player-value">-</span></div>
+          <div class="detail-row"><strong>El tipi:</strong> <span id="hand-type">-</span></div>
+          <div class="detail-row"><strong>Önerilen hamle:</strong> <span id="suggested-move">-</span></div>
+          <div class="detail-row"><strong>Açıklama:</strong> <span id="explanation">Temel strateji tavsiyesi burada görünecek.</span></div>
+        </div>
+
+        <div class="controls">
+          <button class="btn-primary" id="log-hit-btn">Hit olarak kaydet</button>
+          <button class="btn-success" id="log-stand-btn">Stand olarak kaydet</button>
+          <button class="btn-primary" id="log-double-btn">Double olarak kaydet</button>
+          <button class="btn-purple" id="log-split-btn">Split olarak kaydet</button>
+        </div>
+
+        <p class="footer-note">
+          Not: Bu araç öğretici amaçlıdır. Casino kurallarına göre soft 17, surrender, DAS gibi kurallarda temel strateji değişebilir.
+        </p>
+      </aside>
+    </div>
+
+    <section class="panel table-wrap">
+      <div class="section-title">
+        <h2>El Geçmişi</h2>
+        <span class="pill" id="history-count">0 kayıt</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>El</th>
+            <th>Oyuncu</th>
+            <th>Krupiyer</th>
+            <th>Öneri</th>
+            <th>Kaydedilen Hamle</th>
+            <th>Running Count</th>
+            <th>True Count</th>
+          </tr>
+        </thead>
+        <tbody id="history-table">
+          <tr>
+            <td colspan="7" class="muted">Henüz kayıt yok.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const CARD_ORDER = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+
+    const CARD_META = {
+      "2": { total: 2, count: 1, pairKey: "2" },
+      "3": { total: 3, count: 1, pairKey: "3" },
+      "4": { total: 4, count: 1, pairKey: "4" },
+      "5": { total: 5, count: 1, pairKey: "5" },
+      "6": { total: 6, count: 1, pairKey: "6" },
+      "7": { total: 7, count: 0, pairKey: "7" },
+      "8": { total: 8, count: 0, pairKey: "8" },
+      "9": { total: 9, count: 0, pairKey: "9" },
+      "10": { total: 10, count: -1, pairKey: "10" },
+      "J": { total: 10, count: -1, pairKey: "10" },
+      "Q": { total: 10, count: -1, pairKey: "10" },
+      "K": { total: 10, count: -1, pairKey: "10" },
+      "A": { total: 11, count: -1, pairKey: "11" }
+    };
+
+    const BASIC_STRATEGY = {
+      hard: {
+        5:  { "2": "H", "3": "H", "4": "H", "5": "H", "6": "H", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        6:  { "2": "H", "3": "H", "4": "H", "5": "H", "6": "H", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        7:  { "2": "H", "3": "H", "4": "H", "5": "H", "6": "H", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        8:  { "2": "H", "3": "H", "4": "H", "5": "H", "6": "H", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        9:  { "2": "H", "3": "D", "4": "D", "5": "D", "6": "D", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        10: { "2": "D", "3": "D", "4": "D", "5": "D", "6": "D", "7": "D", "8": "D", "9": "D", "10": "H", "A": "H" },
+        11: { "2": "D", "3": "D", "4": "D", "5": "D", "6": "D", "7": "D", "8": "D", "9": "D", "10": "D", "A": "H" },
+        12: { "2": "H", "3": "H", "4": "S", "5": "S", "6": "S", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        13: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        14: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        15: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        16: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        17: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" },
+        18: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" },
+        19: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" },
+        20: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" },
+        21: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" }
+      },
+      soft: {
+        13: { "2": "H", "3": "H", "4": "H", "5": "D", "6": "D", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        14: { "2": "H", "3": "H", "4": "H", "5": "D", "6": "D", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        15: { "2": "H", "3": "H", "4": "D", "5": "D", "6": "D", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        16: { "2": "H", "3": "H", "4": "D", "5": "D", "6": "D", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        17: { "2": "H", "3": "D", "4": "D", "5": "D", "6": "D", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        18: { "2": "S", "3": "D", "4": "D", "5": "D", "6": "D", "7": "S", "8": "S", "9": "H", "10": "H", "A": "S" },
+        19: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" },
+        20: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" },
+        21: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" }
+      },
+      pairs: {
+        2:  { "2": "P", "3": "P", "4": "P", "5": "P", "6": "P", "7": "P", "8": "H", "9": "H", "10": "H", "A": "H" },
+        3:  { "2": "P", "3": "P", "4": "P", "5": "P", "6": "P", "7": "P", "8": "H", "9": "H", "10": "H", "A": "H" },
+        4:  { "2": "H", "3": "H", "4": "H", "5": "P", "6": "P", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        5:  { "2": "D", "3": "D", "4": "D", "5": "D", "6": "D", "7": "D", "8": "D", "9": "D", "10": "H", "A": "H" },
+        6:  { "2": "P", "3": "P", "4": "P", "5": "P", "6": "P", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
+        7:  { "2": "P", "3": "P", "4": "P", "5": "P", "6": "P", "7": "P", "8": "H", "9": "H", "10": "H", "A": "H" },
+        8:  { "2": "P", "3": "P", "4": "P", "5": "P", "6": "P", "7": "P", "8": "P", "9": "P", "10": "P", "A": "P" },
+        9:  { "2": "P", "3": "P", "4": "P", "5": "P", "6": "P", "7": "S", "8": "P", "9": "P", "10": "S", "A": "S" },
+        10: { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "S", "8": "S", "9": "S", "10": "S", "A": "S" },
+        11: { "2": "P", "3": "P", "4": "P", "5": "P", "6": "P", "7": "P", "8": "P", "9": "P", "10": "P", "A": "P" }
+      }
+    };
+
+    const state = {
+      shoeDeckCount: 6,
+      runningCount: 0,
+      currentDealerCard: null,
+      currentPlayerCards: [],
+      history: [],
+      roundNumber: 1
+    };
+
+    const ui = {
+      dealerCards: document.getElementById("dealer-cards"),
+      playerCards: document.getElementById("player-cards"),
+      selectedDealer: document.getElementById("selected-dealer"),
+      selectedPlayer: document.getElementById("selected-player"),
+      runningCount: document.getElementById("running-count"),
+      trueCount: document.getElementById("true-count"),
+      recommendedBet: document.getElementById("recommended-bet"),
+      recommendation: document.getElementById("recommendation"),
+      dealerValue: document.getElementById("dealer-value"),
+      playerValue: document.getElementById("player-value"),
+      handType: document.getElementById("hand-type"),
+      suggestedMove: document.getElementById("suggested-move"),
+      explanation: document.getElementById("explanation"),
+      historyTable: document.getElementById("history-table"),
+      historyCount: document.getElementById("history-count"),
+      deckCount: document.getElementById("deck-count"),
+      decksRemaining: document.getElementById("decks-remaining")
+    };
+
+    function createCardButton(card, onClick) {
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = `card ${["10", "J", "Q", "K", "A"].includes(card) ? "red" : "black"}`;
+      el.textContent = card;
+      el.addEventListener("click", () => onClick(card));
+      return el;
+    }
+
+    function renderCardPickers() {
+      ui.dealerCards.innerHTML = "";
+      ui.playerCards.innerHTML = "";
+
+      CARD_ORDER.forEach((card) => {
+        ui.dealerCards.appendChild(createCardButton(card, selectDealerCard));
+        ui.playerCards.appendChild(createCardButton(card, addPlayerCard));
+      });
+    }
+
+    function createMiniCard(card) {
+      const el = document.createElement("div");
+      el.className = `mini-card ${["10", "J", "Q", "K", "A"].includes(card) ? "red" : "black"}`;
+      el.textContent = card;
+      return el;
+    }
+
+    function renderSelectedCards() {
+      ui.selectedDealer.innerHTML = "";
+      ui.selectedPlayer.innerHTML = "";
+
+      if (state.currentDealerCard) {
+        ui.selectedDealer.appendChild(createMiniCard(state.currentDealerCard));
+      } else {
+        ui.selectedDealer.innerHTML = '<span class="muted">Henüz seçilmedi.</span>';
+      }
+
+      if (state.currentPlayerCards.length > 0) {
+        state.currentPlayerCards.forEach((card) => ui.selectedPlayer.appendChild(createMiniCard(card)));
+      } else {
+        ui.selectedPlayer.innerHTML = '<span class="muted">Henüz seçilmedi.</span>';
+      }
+    }
+
+    function calculateHand(cards) {
+      let total = 0;
+      let aceCount = 0;
+
+      cards.forEach((card) => {
+        total += CARD_META[card].total;
+        if (card === "A") aceCount += 1;
+      });
+
+      while (total > 21 && aceCount > 0) {
+        total -= 10;
+        aceCount -= 1;
+      }
+
+      const isSoft = cards.includes("A") && total <= 21 && aceCount > 0;
+      return { total, isSoft, isBust: total > 21 };
+    }
+
+    function getDealerUpcardKey(card) {
+      return card === null ? null : card;
+    }
+
+    function isPair(cards) {
+      return cards.length === 2 && CARD_META[cards[0]].pairKey === CARD_META[cards[1]].pairKey;
+    }
+
+    function getPairKey(cards) {
+      if (!isPair(cards)) return null;
+      return Number(CARD_META[cards[0]].pairKey);
+    }
+
+    function getMoveText(move) {
+      const map = {
+        H: "Hit (Kart Çek)",
+        S: "Stand (Dur)",
+        D: "Double (Çiftle)",
+        P: "Split (Ayır)"
+      };
+      return map[move] || "-";
+    }
+
+    function getMoveExplanation(move, handSummary, dealerCard) {
+      if (handSummary.isBust) {
+        return "Oyuncu eli 21'i geçti. Bu durumda el battı.";
+      }
+
+      switch (move) {
+        case "H":
+          return `Mevcut durumda en iyi beklenti, ${dealerCard} açık karta karşı bir kart daha çekmektir.`;
+        case "S":
+          return `Bu elde durmak daha güvenli. ${dealerCard} açık karta karşı mevcut toplam yeterince güçlü.`;
+        case "D":
+          return `Bu senaryoda avantajlı hamle, bahsi artırıp yalnızca bir kart almaktır.`;
+        case "P":
+          return "Bu iki kartı ayırmak matematiksel olarak daha iyi sonuç verir.";
+        default:
+          return "Yeterli kart girişi yok veya bu senaryo strateji tablosunda tanımlı değil.";
+      }
+    }
+
+    function getRecommendationClass(move) {
+      const map = { H: "hit", S: "stand", D: "double", P: "split" };
+      return map[move] || "waiting";
+    }
+
+    function computeTrueCount() {
+      const remaining = Math.max(0.25, Number(ui.decksRemaining.value) || state.shoeDeckCount);
+      return state.runningCount / remaining;
+    }
+
+    function getRecommendedBet(trueCount) {
+      if (trueCount >= 5) return "12 birim";
+      if (trueCount >= 4) return "8 birim";
+      if (trueCount >= 3) return "4 birim";
+      if (trueCount >= 2) return "2 birim";
+      return "1 birim";
+    }
+
+    function updateCountDisplay() {
+      const trueCount = computeTrueCount();
+      ui.runningCount.textContent = String(state.runningCount);
+      ui.trueCount.textContent = trueCount.toFixed(1);
+      ui.recommendedBet.textContent = getRecommendedBet(trueCount);
+    }
+
+    function computeAdvice() {
+      renderSelectedCards();
+      updateCountDisplay();
+
+      if (!state.currentDealerCard || state.currentPlayerCards.length < 2) {
+        ui.recommendation.className = "recommendation waiting";
+        ui.recommendation.textContent = "Lütfen kartları seçin";
+        ui.dealerValue.textContent = state.currentDealerCard ? `${state.currentDealerCard} (${CARD_META[state.currentDealerCard].total === 11 ? "11/1" : CARD_META[state.currentDealerCard].total})` : "-";
+        ui.playerValue.textContent = state.currentPlayerCards.length ? state.currentPlayerCards.join(", ") : "-";
+        ui.handType.textContent = "-";
+        ui.suggestedMove.textContent = "-";
+        ui.explanation.textContent = "En az 1 krupiyer kartı ve 2 oyuncu kartı seçmelisiniz.";
+        return { move: null, handSummary: null };
+      }
+
+      const handSummary = calculateHand(state.currentPlayerCards);
+      const dealerKey = getDealerUpcardKey(state.currentDealerCard);
+
+      ui.dealerValue.textContent = `${state.currentDealerCard} (${state.currentDealerCard === "A" ? "11/1" : CARD_META[state.currentDealerCard].total})`;
+      ui.playerValue.textContent = `${state.currentPlayerCards.join(", ")} (${handSummary.total})`;
+
+      if (handSummary.isBust) {
+        ui.handType.textContent = handSummary.isSoft ? "Soft / Battı" : "Hard / Battı";
+        ui.recommendation.className = "recommendation waiting";
+        ui.recommendation.textContent = "BUST";
+        ui.suggestedMove.textContent = "El battı";
+        ui.explanation.textContent = "Oyuncu toplamı 21'i geçtiği için bu el kaybedilir.";
+        return { move: null, handSummary };
+      }
+
+      let move = null;
+      let handTypeLabel = handSummary.isSoft ? "Soft" : "Hard";
+
+      if (isPair(state.currentPlayerCards)) {
+        const pairKey = getPairKey(state.currentPlayerCards);
+        const pairMove = BASIC_STRATEGY.pairs[pairKey]?.[dealerKey] ?? null;
+        if (pairMove) {
+          move = pairMove;
+          handTypeLabel = `Pair (${state.currentPlayerCards[0]}-${state.currentPlayerCards[1]})`;
+        }
+      }
+
+      if (!move) {
+        const tableType = handSummary.isSoft ? "soft" : "hard";
+        move = BASIC_STRATEGY[tableType][handSummary.total]?.[dealerKey] ?? null;
+      }
+
+      ui.handType.textContent = handTypeLabel;
+      ui.recommendation.className = `recommendation ${getRecommendationClass(move)}`;
+      ui.recommendation.textContent = move ? move : "N/A";
+      ui.suggestedMove.textContent = getMoveText(move);
+      ui.explanation.textContent = getMoveExplanation(move, handSummary, dealerKey);
+
+      return { move, handSummary };
+    }
+
+    function applyCardToCount(card, direction = 1) {
+      state.runningCount += CARD_META[card].count * direction;
+    }
+
+    function selectDealerCard(card) {
+      if (state.currentDealerCard) {
+        applyCardToCount(state.currentDealerCard, -1);
+      }
+      state.currentDealerCard = card;
+      applyCardToCount(card, 1);
+      computeAdvice();
+    }
+
+    function addPlayerCard(card) {
+      state.currentPlayerCards.push(card);
+      applyCardToCount(card, 1);
+      computeAdvice();
+    }
+
+    function undoLastPlayerCard() {
+      const removed = state.currentPlayerCards.pop();
+      if (!removed) return;
+      applyCardToCount(removed, -1);
+      computeAdvice();
+    }
+
+    function clearPlayerHand() {
+      state.currentPlayerCards.forEach((card) => applyCardToCount(card, -1));
+      state.currentPlayerCards = [];
+      computeAdvice();
+    }
+
+    function clearDealerCard() {
+      if (!state.currentDealerCard) return;
+      applyCardToCount(state.currentDealerCard, -1);
+      state.currentDealerCard = null;
+      computeAdvice();
+    }
+
+    function newRound() {
+      clearDealerCard();
+      clearPlayerHand();
+      state.roundNumber += 1;
+    }
+
+    function resetShoe() {
+      state.runningCount = 0;
+      state.history = [];
+      state.roundNumber = 1;
+      state.currentDealerCard = null;
+      state.currentPlayerCards = [];
+      state.shoeDeckCount = Number(ui.deckCount.value);
+      ui.decksRemaining.value = String(state.shoeDeckCount);
+      renderHistory();
+      computeAdvice();
+    }
+
+    function logHistory(action) {
+      const { move } = computeAdvice();
+      if (!state.currentDealerCard || state.currentPlayerCards.length < 2) {
+        alert("Önce geçerli bir el oluşturmalısınız.");
+        return;
+      }
+
+      state.history.unshift({
+        round: state.roundNumber,
+        player: [...state.currentPlayerCards],
+        dealer: state.currentDealerCard,
+        recommendation: move ? getMoveText(move) : "-",
+        action,
+        runningCount: state.runningCount,
+        trueCount: computeTrueCount().toFixed(1)
+      });
+
+      renderHistory();
+    }
+
+    function renderHistory() {
+      ui.historyCount.textContent = `${state.history.length} kayıt`;
+
+      if (state.history.length === 0) {
+        ui.historyTable.innerHTML = '<tr><td colspan="7" class="muted">Henüz kayıt yok.</td></tr>';
+        return;
+      }
+
+      ui.historyTable.innerHTML = "";
+      state.history.forEach((item) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.round}</td>
+          <td>${item.player.join(", ")}</td>
+          <td>${item.dealer}</td>
+          <td>${item.recommendation}</td>
+          <td>${item.action}</td>
+          <td>${item.runningCount}</td>
+          <td>${item.trueCount}</td>
+        `;
+        ui.historyTable.appendChild(row);
+      });
+    }
+
+    function syncDeckInputs() {
+      state.shoeDeckCount = Number(ui.deckCount.value);
+      const currentRemaining = Number(ui.decksRemaining.value);
+      if (!Number.isFinite(currentRemaining) || currentRemaining <= 0) {
+        ui.decksRemaining.value = String(state.shoeDeckCount);
+      }
+      computeAdvice();
+    }
+
+    function initEvents() {
+      document.getElementById("undo-player-btn").addEventListener("click", undoLastPlayerCard);
+      document.getElementById("clear-player-btn").addEventListener("click", clearPlayerHand);
+      document.getElementById("clear-dealer-btn").addEventListener("click", clearDealerCard);
+      document.getElementById("new-round-btn").addEventListener("click", newRound);
+      document.getElementById("reset-shoe-btn").addEventListener("click", resetShoe);
+
+      document.getElementById("log-hit-btn").addEventListener("click", () => logHistory("Hit"));
+      document.getElementById("log-stand-btn").addEventListener("click", () => logHistory("Stand"));
+      document.getElementById("log-double-btn").addEventListener("click", () => logHistory("Double"));
+      document.getElementById("log-split-btn").addEventListener("click", () => logHistory("Split"));
+
+      ui.deckCount.addEventListener("change", syncDeckInputs);
+      ui.decksRemaining.addEventListener("input", () => {
+        if (Number(ui.decksRemaining.value) <= 0) {
+          ui.decksRemaining.value = "0.25";
+        }
+        computeAdvice();
+      });
+    }
+
+    function init() {
+      renderCardPickers();
+      renderSelectedCards();
+      renderHistory();
+      initEvents();
+      computeAdvice();
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
