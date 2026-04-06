@@ -2,6 +2,17 @@
 
 An interactive single-page web application that helps players study **basic blackjack strategy** together with the **Hi-Lo card counting system**.
 
+---
+
+## Preview
+
+### Game Screen
+![Game Screen](screenshots/main-screen1.png)
+
+![Game Screen](screenshots/main-screen2.png)
+
+---
+
 ## Features
 
 - Select dealer upcard and player cards visually
